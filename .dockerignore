@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vscode
+.env
+**/target
+web/node_modules
+web/.next
+web/out
+infra/aws/.terraform
+infra/aws/*.tfstate*
+load-tests/results

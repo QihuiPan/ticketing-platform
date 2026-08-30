@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: ticketing-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ticketing}
+    username: ${DATABASE_USER:ticketing}
+    password: ${DATABASE_PASSWORD:ticketing}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:30}
+      connection-timeout: 3000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 750ms
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:ticketing}
+    password: ${RABBITMQ_PASSWORD:ticketing}
+    connection-timeout: 2s
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    ssl:
+      enabled: ${RABBITMQ_SSL_ENABLED:false}
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  observations:
+    key-values:
+      service: ticketing-api
+
+logging:
+  pattern:
+    console: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSXXX}","level":"%p","service":"ticketing-api","trace_id":"%X{traceId:-}","span_id":"%X{spanId:-}","logger":"%logger{36}","message":"%replace(%m){''[\r\n]+'','' ''}"}%n'
+
+app:
+  auth:
+    issuer: ticketing-platform
+    access-token-ttl: PT30M
+    jwt-secret: ${JWT_SECRET:local-development-secret-change-this-now}
+  holds:
+    ttl: ${HOLD_TTL:PT5M}
+    expiry-batch-size: 100
+  messaging:
+    exchange: ticketing.events
+    order-confirmed-routing-key: order.confirmed
+    notification-queue: notifications.order-confirmed
+    dead-letter-exchange: ticketing.dlx
+  seed-demo: ${SEED_DEMO:true}

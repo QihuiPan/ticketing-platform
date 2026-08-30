@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: notification-worker
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ticketing}
+    username: ${DATABASE_USER:ticketing}
+    password: ${DATABASE_PASSWORD:ticketing}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:8}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:ticketing}
+    password: ${RABBITMQ_PASSWORD:ticketing}
+    ssl:
+      enabled: ${RABBITMQ_SSL_ENABLED:false}
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        concurrency: 2
+        max-concurrency: 8
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 500ms
+          multiplier: 2
+          max-interval: 8s
+
+server:
+  port: ${PORT:8081}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    console: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSXXX}","level":"%p","service":"notification-worker","logger":"%logger{36}","message":"%replace(%m){''[\r\n]+'','' ''}"}%n'
+
+app:
+  messaging:
+    exchange: ticketing.events
+    order-confirmed-routing-key: order.confirmed
+    notification-queue: notifications.order-confirmed
+    dead-letter-exchange: ticketing.dlx
