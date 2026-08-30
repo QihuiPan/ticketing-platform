@@ -20,6 +20,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Pinned the Maven wrapper distribution and checksum for reproducible builds.
 - Reduced cold container build time by resolving only dependencies required by each service package.
 - Normalized repository text files to a single terminal newline for clean cross-platform Git checks.
+- Upgraded GitHub-owned workflow actions to their current Node.js 24-based major releases.
 
 ## [0.3.0] - 2026-08-31
 
