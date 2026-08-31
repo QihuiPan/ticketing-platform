@@ -16,3 +16,8 @@ infra/aws/*.tfstate*
 infra/aws/*.tfvars
 infra/aws/*.tfplan
 !infra/aws/*.tfvars.example
+infra/aws-demo/.terraform/
+infra/aws-demo/*.tfstate*
+infra/aws-demo/*.tfvars
+infra/aws-demo/*.tfplan
+!infra/aws-demo/*.tfvars.example

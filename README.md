@@ -117,6 +117,7 @@ apps/notification-worker/   Deduplicating asynchronous consumer
 web/                        Next.js demonstration interface
 infra/observability/        Collector, Prometheus, and Grafana configuration
 infra/aws/                  Terraform production baseline
+infra/aws-demo/             Cost-controlled single-node AWS portfolio demo
 load-tests/                 k6 contention scenario
 docs/                       Architecture, API, runbook, and decisions
 .github/workflows/          Build and policy automation
@@ -126,7 +127,9 @@ docs/                       Architecture, API, runbook, and decisions
 
 JWT authentication, role-based authorization, BCrypt password hashing, validation, bounded pagination, rate limiting, non-sensitive structured logs, and immutable audit entries are enabled. Review [Security](SECURITY.md) before deployment and use the [Runbook](docs/runbook.md) during incidents.
 
-The AWS baseline places the data stores in private subnets, runs the API and worker on ECS Fargate, terminates traffic at an Application Load Balancer, stores application secrets in Secrets Manager, and enables encrypted backups. It is a starting point that requires organization-specific DNS, certificate, alerting, and payment-provider configuration.
+The [AWS production baseline](infra/aws/README.md) places the data stores in private subnets, runs the API and worker on ECS Fargate, terminates traffic at an Application Load Balancer, stores application secrets in Secrets Manager, and enables encrypted backups. It is a starting point that requires organization-specific DNS, certificate, alerting, and payment-provider configuration.
+
+For a public portfolio demonstration, the separate [AWS single-node demo](infra/aws-demo/README.md) runs the application and its data services on one EC2 instance, uses Systems Manager instead of SSH, and adds AWS Budget notifications. It is designed to control cost and is not a high-availability production substitute.
 
 ## Change policy
 

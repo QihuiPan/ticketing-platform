@@ -9,4 +9,8 @@ web/.next
 web/out
 infra/aws/.terraform
 infra/aws/*.tfstate*
+infra/aws-demo/.terraform
+infra/aws-demo/*.tfstate*
+infra/aws-demo/*.tfvars
+infra/aws-demo/*.tfplan
 load-tests/results

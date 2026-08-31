@@ -59,6 +59,43 @@ jobs:
         run: |
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" | grep -qx CHANGELOG.md
 
+  infrastructure:
+    name: Infrastructure validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.9"
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive infra
+      - name: Validate production Terraform
+        run: |
+          terraform -chdir=infra/aws init -backend=false
+          terraform -chdir=infra/aws validate
+      - name: Validate demo Terraform
+        run: |
+          terraform -chdir=infra/aws-demo init -backend=false
+          terraform -chdir=infra/aws-demo validate
+      - name: Validate demo Compose configuration
+        run: docker compose --env-file infra/aws-demo/runtime/.env.example -f infra/aws-demo/runtime/docker-compose.yml config --quiet
+      - name: Parse the deployment script
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            "infra/aws-demo/scripts/deploy.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
   container-images:
     name: Container build
     runs-on: ubuntu-latest

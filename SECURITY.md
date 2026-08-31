@@ -20,3 +20,10 @@ Do not open a public issue for a suspected vulnerability. Send a private GitHub 
 - Restrict database, Redis, and RabbitMQ security groups to application subnets.
 - Enable dependency scanning, container scanning, and secret scanning in GitHub.
 - Review audit logs and authentication failures through the centralized logging system.
+
+## Portfolio demo boundary
+
+- The AWS single-node demo intentionally exposes the shared buyer credential so reviewers can exercise simulated booking flows.
+- The EC2 bootstrap randomizes the organizer password and stores it only in the root-readable deployment environment file.
+- Never load real customer data, payment credentials, or production secrets into the single-node demo.
+- Destroy the demo infrastructure when it is no longer being reviewed; it does not provide production-grade availability or backups.

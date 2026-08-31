@@ -1,0 +1,10 @@
+aws_region         = "eu-west-2"
+budget_email       = "owner@example.com"
+monthly_budget_usd = 25
+instance_type      = "t3.small"
+
+# Use ":80" until a DNS A record points to the public_ipv4 output.
+site_address = ":80"
+
+# The buyer credential is public; the EC2 bootstrap randomizes the organizer password.
+seed_demo = true

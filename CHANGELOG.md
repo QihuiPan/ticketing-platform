@@ -8,6 +8,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Added a cost-controlled single-node AWS portfolio demo with EC2, encrypted storage, Systems Manager administration, a private short-lived deployment bucket, Caddy routing, and a memory-bounded Docker Compose stack.
+- Added AWS Budget notifications at 50 percent forecasted spend and 80/100 percent actual spend, plus a reproducible PowerShell deployment workflow for committed Git revisions.
+- Added configurable demonstration credentials and documented their security boundary so public portfolio deployments can retain the shared buyer flow while randomizing the privileged organizer password at first boot.
 - Added the complete English project guide, API reference, architecture guide, operations runbook, incident template, architecture decisions, pull request checklist, and MIT license.
 - Added tagged release automation that publishes versioned API, worker, and web images to GitHub Container Registry.
 - Expanded PostgreSQL integration coverage for 100-way seat contention, concurrent payment retries, automatic hold expiry, and idempotent refunds.

@@ -1,0 +1,75 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf install -y docker unzip
+systemctl enable --now docker
+systemctl enable --now amazon-ssm-agent
+usermod -aG docker ec2-user
+
+compose_version="2.39.4"
+compose_sha256="7af95166a730b87e172d4fc9aefea8725d3c6c7327d59149267b452114ddb7d4"
+compose_directory="/usr/local/lib/docker/cli-plugins"
+mkdir -p "$compose_directory"
+curl --fail --location --silent --show-error \
+  "https://github.com/docker/compose/releases/download/v$${compose_version}/docker-compose-linux-x86_64" \
+  --output "$${compose_directory}/docker-compose"
+echo "$${compose_sha256}  $${compose_directory}/docker-compose" | sha256sum --check --status
+chmod 0755 "$${compose_directory}/docker-compose"
+docker compose version
+
+if ! swapon --show=NAME | grep -qx "/swapfile"; then
+  if [ ! -f /swapfile ]; then
+    fallocate -l 4G /swapfile
+    chmod 0600 /swapfile
+    mkswap /swapfile
+  fi
+  swapon /swapfile
+fi
+grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+install -d -m 0700 /opt/seatforge
+if [ ! -f /opt/seatforge/.env ]; then
+  umask 077
+  postgres_password="$(openssl rand -hex 24)"
+  rabbitmq_password="$(openssl rand -hex 24)"
+  jwt_secret="$(openssl rand -hex 48)"
+  organizer_password="$(openssl rand -base64 24 | tr -d '\n')"
+
+  cat > /opt/seatforge/.env <<EOF
+COMPOSE_PROJECT_NAME=seatforge-demo
+POSTGRES_DB=ticketing
+POSTGRES_USER=ticketing
+POSTGRES_PASSWORD=$${postgres_password}
+RABBITMQ_USER=ticketing
+RABBITMQ_PASSWORD=$${rabbitmq_password}
+JWT_SECRET=$${jwt_secret}
+DEMO_ORGANIZER_PASSWORD=$${organizer_password}
+SITE_ADDRESS=${site_address}
+SEED_DEMO=${seed_demo}
+EOF
+  chmod 0600 /opt/seatforge/.env
+fi
+
+cat > /etc/systemd/system/seatforge-demo.service <<'EOF'
+[Unit]
+Description=SeatForge single-node demonstration stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+ConditionPathExists=/opt/seatforge/current/infra/aws-demo/runtime/docker-compose.yml
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/seatforge/current
+ExecStart=/usr/bin/docker compose --env-file /opt/seatforge/.env -f /opt/seatforge/current/infra/aws-demo/runtime/docker-compose.yml up -d --remove-orphans
+ExecStop=/usr/bin/docker compose --env-file /opt/seatforge/.env -f /opt/seatforge/current/infra/aws-demo/runtime/docker-compose.yml stop
+TimeoutStartSec=900
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable seatforge-demo.service

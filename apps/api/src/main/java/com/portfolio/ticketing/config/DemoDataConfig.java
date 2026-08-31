@@ -9,6 +9,7 @@ import com.portfolio.ticketing.repository.EventRepository;
 import com.portfolio.ticketing.repository.EventSessionRepository;
 import com.portfolio.ticketing.repository.SeatRepository;
 import com.portfolio.ticketing.repository.UserAccountRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,18 +32,24 @@ public class DemoDataConfig implements ApplicationRunner {
     private final EventSessionRepository sessions;
     private final SeatRepository seats;
     private final PasswordEncoder passwordEncoder;
+    private final String buyerPassword;
+    private final String organizerPassword;
 
     public DemoDataConfig(
             UserAccountRepository users,
             EventRepository events,
             EventSessionRepository sessions,
             SeatRepository seats,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            @Value("${app.demo.buyer-password}") String buyerPassword,
+            @Value("${app.demo.organizer-password}") String organizerPassword) {
         this.users = users;
         this.events = events;
         this.sessions = sessions;
         this.seats = seats;
         this.passwordEncoder = passwordEncoder;
+        this.buyerPassword = buyerPassword;
+        this.organizerPassword = organizerPassword;
     }
 
     @Override
@@ -52,9 +59,9 @@ public class DemoDataConfig implements ApplicationRunner {
             return;
         }
         UserAccount organizer = users.save(new UserAccount(
-                "organizer@example.com", passwordEncoder.encode("DemoOrganizer123!"), DomainTypes.Role.ORGANIZER));
+                "organizer@example.com", passwordEncoder.encode(organizerPassword), DomainTypes.Role.ORGANIZER));
         users.save(new UserAccount(
-                "buyer@example.com", passwordEncoder.encode("DemoBuyer123!"), DomainTypes.Role.BUYER));
+                "buyer@example.com", passwordEncoder.encode(buyerPassword), DomainTypes.Role.BUYER));
 
         EventEntity event = new EventEntity(
                 organizer,

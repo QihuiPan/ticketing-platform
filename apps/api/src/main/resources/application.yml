@@ -85,3 +85,6 @@ app:
     notification-queue: notifications.order-confirmed
     dead-letter-exchange: ticketing.dlx
   seed-demo: ${SEED_DEMO:true}
+  demo:
+    buyer-password: ${DEMO_BUYER_PASSWORD:DemoBuyer123!}
+    organizer-password: ${DEMO_ORGANIZER_PASSWORD:DemoOrganizer123!}
