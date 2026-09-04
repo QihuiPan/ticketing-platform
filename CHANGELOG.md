@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Changed the GitHub repository visibility from private to public on September 4, 2026, making the project source and development history available for portfolio review.
 - Added configurable RabbitMQ TLS for the encrypted Amazon MQ production path.
 - Hardened cache invalidation with post-commit callbacks, added global payment-key serialization, required broker publisher confirms, validated JWT issuers, restricted booking to published future sessions, reopened refunded seats, and enabled TLS for managed Redis and PostgreSQL.
 - Pinned the Maven wrapper distribution and checksum for reproducible builds.
