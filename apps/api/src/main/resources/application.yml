@@ -76,6 +76,8 @@ app:
     issuer: ticketing-platform
     access-token-ttl: PT30M
     jwt-secret: ${JWT_SECRET:local-development-secret-change-this-now}
+  cors:
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*}
   holds:
     ttl: ${HOLD_TTL:PT5M}
     expiry-batch-size: 100

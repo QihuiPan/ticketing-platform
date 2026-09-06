@@ -8,6 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Added cross-platform quick-start scripts that validate Docker, create local configuration, start the complete stack, wait for API readiness, and provide actionable failure diagnostics.
+- Added a repeatable end-to-end smoke test covering health, authentication, catalog discovery, seat holds, orders, idempotent payment replay, ticket downloads, refunds, and inventory restoration.
+- Added a fresh-install Compose job to CI so the documented user journey is verified from an empty environment on every change.
+- Added structured bug and feature request forms with a private security-reporting route for public users.
 - Added a cost-controlled single-node AWS portfolio demo with EC2, encrypted storage, Systems Manager administration, a private short-lived deployment bucket, Caddy routing, and a memory-bounded Docker Compose stack.
 - Added AWS Budget notifications at 50 percent forecasted spend and 80/100 percent actual spend, plus a reproducible PowerShell deployment workflow for committed Git revisions.
 - Added configurable demonstration credentials and documented their security boundary so public portfolio deployments can retain the shared buyer flow while randomizing the privileged organizer password at first boot.
@@ -18,6 +22,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- Hardened the local Compose stack with health-based startup ordering, graceful shutdown, bounded logs, loopback-only port exposure, configurable demo credentials, and configurable CORS origins.
+- Expanded the quick-start, configuration, verification, shutdown, reset, and troubleshooting documentation for first-time users on Windows, macOS, and Linux.
+- Improved the public repository metadata and enabled GitHub secret scanning and push protection.
 - Changed the GitHub repository visibility from private to public on September 4, 2026, making the project source and development history available for portfolio review.
 - Added configurable RabbitMQ TLS for the encrypted Amazon MQ production path.
 - Hardened cache invalidation with post-commit callbacks, added global payment-key serialization, required broker publisher confirms, validated JWT issuers, restricted booking to published future sessions, reopened refunded seats, and enabled TLS for managed Redis and PostgreSQL.

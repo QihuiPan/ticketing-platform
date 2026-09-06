@@ -81,20 +81,42 @@ jobs:
           terraform -chdir=infra/aws-demo validate
       - name: Validate demo Compose configuration
         run: docker compose --env-file infra/aws-demo/runtime/.env.example -f infra/aws-demo/runtime/docker-compose.yml config --quiet
-      - name: Parse the deployment script
+      - name: Validate shell helpers
+        run: bash -n scripts/quickstart.sh
+      - name: Parse the PowerShell scripts
         shell: pwsh
         run: |
           $tokens = $null
           $errors = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile(
-            "infra/aws-demo/scripts/deploy.ps1",
-            [ref]$tokens,
-            [ref]$errors
-          )
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
-            exit 1
+          foreach ($path in @("infra/aws-demo/scripts/deploy.ps1", "scripts/quickstart.ps1")) {
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              $path,
+              [ref]$tokens,
+              [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              exit 1
+            }
           }
+
+  compose-smoke:
+    name: Fresh-install smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Build and start the user-facing stack
+        run: docker compose --env-file .env.example up --build --detach --wait api notification-worker web
+      - name: Exercise the complete booking journey
+        run: docker compose --env-file .env.example --profile load-test run --rm k6 run /scripts/smoke.js
+      - name: Capture diagnostics
+        if: failure()
+        run: docker compose --env-file .env.example logs --no-color --tail 200 api notification-worker web postgres rabbitmq redis
+      - name: Remove test resources
+        if: always()
+        run: docker compose --env-file .env.example down --volumes --remove-orphans
 
   container-images:
     name: Container build

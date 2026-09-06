@@ -3,6 +3,7 @@ import { check, sleep } from "k6";
 import { Counter } from "k6/metrics";
 
 const baseUrl = __ENV.BASE_URL || "http://localhost:8080";
+const buyerPassword = __ENV.DEMO_BUYER_PASSWORD || "DemoBuyer123!";
 const successes = new Counter("booking_successes");
 const conflicts = new Counter("booking_conflicts");
 
@@ -25,7 +26,7 @@ export const options = {
 export function setup() {
   const login = http.post(`${baseUrl}/api/auth/login`, JSON.stringify({
     email: "buyer@example.com",
-    password: "DemoBuyer123!",
+    password: buyerPassword,
   }), { headers: { "Content-Type": "application/json" } });
   check(login, { "buyer login succeeds": (response) => response.status === 200 });
 

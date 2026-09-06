@@ -3,6 +3,7 @@ package com.portfolio.ticketing.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.List;
 
 public final class AppProperties {
 
@@ -15,6 +16,10 @@ public final class AppProperties {
 
     @ConfigurationProperties("app.holds")
     public record Holds(Duration ttl, int expiryBatchSize) {
+    }
+
+    @ConfigurationProperties("app.cors")
+    public record Cors(List<String> allowedOriginPatterns) {
     }
 
     @ConfigurationProperties("app.messaging")

@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose a focused improvement to SeatForge.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain the user or operational problem this feature should solve.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the observable result without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and alternatives
+      description: Note concurrency, security, compatibility, or operational constraints and alternatives considered.
+  - type: checkboxes
+    id: invariants
+    attributes:
+      label: Invariant review
+      options:
+        - label: This proposal preserves single-seat ownership and idempotent payment behavior.
+          required: true

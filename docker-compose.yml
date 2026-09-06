@@ -1,5 +1,11 @@
 name: ticketing-platform
 
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -8,7 +14,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-ticketing}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ticketing}
     ports:
-      - "5432:5432"
+      - "${BIND_ADDRESS:-127.0.0.1}:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -16,12 +22,14 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    restart: unless-stopped
+    logging: *default-logging
 
   redis:
     image: redis:8-alpine
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "${BIND_ADDRESS:-127.0.0.1}:6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -29,6 +37,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    restart: unless-stopped
+    logging: *default-logging
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
@@ -36,8 +46,8 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-ticketing}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-ticketing}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${BIND_ADDRESS:-127.0.0.1}:5672:5672"
+      - "${BIND_ADDRESS:-127.0.0.1}:15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
@@ -45,6 +55,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
+    restart: unless-stopped
+    logging: *default-logging
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.136.0
@@ -52,8 +64,10 @@ services:
     volumes:
       - ./infra/observability/otel-collector.yml:/etc/otelcol/config.yml:ro
     ports:
-      - "4317:4317"
-      - "4318:4318"
+      - "${BIND_ADDRESS:-127.0.0.1}:4317:4317"
+      - "${BIND_ADDRESS:-127.0.0.1}:4318:4318"
+    restart: unless-stopped
+    logging: *default-logging
 
   api:
     build:
@@ -68,9 +82,13 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-ticketing}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-ticketing}
       JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-this-now}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      DEMO_BUYER_PASSWORD: ${DEMO_BUYER_PASSWORD:-DemoBuyer123!}
+      DEMO_ORGANIZER_PASSWORD: ${DEMO_ORGANIZER_PASSWORD:-DemoOrganizer123!}
+      CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*}
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
-      - "8080:8080"
+      - "${BIND_ADDRESS:-127.0.0.1}:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,7 +98,16 @@ services:
         condition: service_healthy
       otel-collector:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    init: true
     restart: unless-stopped
+    stop_grace_period: 30s
+    logging: *default-logging
 
   notification-worker:
     build:
@@ -94,25 +121,46 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-ticketing}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-ticketing}
     ports:
-      - "8081:8081"
+      - "${BIND_ADDRESS:-127.0.0.1}:8081:8081"
     depends_on:
+      postgres:
+        condition: service_healthy
       api:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    init: true
     restart: unless-stopped
+    stop_grace_period: 30s
+    logging: *default-logging
 
   web:
     build:
       context: web
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_DEMO_BUYER_PASSWORD: ${DEMO_BUYER_PASSWORD:-DemoBuyer123!}
     ports:
-      - "3000:3000"
+      - "${BIND_ADDRESS:-127.0.0.1}:3000:3000"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    init: true
     restart: unless-stopped
+    stop_grace_period: 20s
+    logging: *default-logging
 
   prometheus:
     image: prom/prometheus:v3.5.0
@@ -120,35 +168,40 @@ services:
     volumes:
       - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - "${BIND_ADDRESS:-127.0.0.1}:9090:9090"
     depends_on:
       - api
       - notification-worker
+    restart: unless-stopped
+    logging: *default-logging
 
   grafana:
     image: grafana/grafana:12.1.1
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./infra/observability/grafana:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3001:3000"
+      - "${BIND_ADDRESS:-127.0.0.1}:3001:3000"
     depends_on:
       - prometheus
+    restart: unless-stopped
+    logging: *default-logging
 
   k6:
     image: grafana/k6:1.2.3
     profiles: ["load-test"]
     environment:
       BASE_URL: http://api:8080
+      DEMO_BUYER_PASSWORD: ${DEMO_BUYER_PASSWORD:-DemoBuyer123!}
     volumes:
       - ./load-tests:/scripts:ro
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres-data:

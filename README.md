@@ -51,14 +51,30 @@ See [Architecture](docs/architecture.md) and the [API reference](docs/api.md) fo
 
 ## Quick start
 
-Requirements: Docker Desktop with Compose v2.
+The only runtime requirement is a working Docker engine with Docker Compose v2. The first build downloads the required images and dependencies, so it can take several minutes.
+
+Clone the repository:
 
 ```bash
-cp .env.example .env
-docker compose up --build
+git clone https://github.com/QihuiPan/ticketing-platform.git
+cd ticketing-platform
 ```
 
-Open the following services:
+On Windows, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\quickstart.ps1
+```
+
+On macOS or Linux, run:
+
+```bash
+./scripts/quickstart.sh
+```
+
+The script checks Docker, creates `.env` from the safe local defaults when needed, builds the images, starts the stack in the background, and waits until the API is healthy. It does not overwrite an existing `.env` file.
+
+Open the services after the readiness message appears:
 
 - Web application: <http://localhost:3000>
 - API health: <http://localhost:8080/actuator/health>
@@ -74,6 +90,71 @@ The local seed creates a published event with 30 seats and two demo accounts:
 | Organizer | `organizer@example.com` | `DemoOrganizer123!` |
 
 These credentials are for local demonstration only. Change every default secret before exposing the stack to a network.
+
+## Verify the installation
+
+Run the repeatable smoke test after startup:
+
+```bash
+docker compose --profile load-test run --rm k6 run /scripts/smoke.js
+```
+
+The test verifies the full user journey: API health, sign-in, event discovery, live availability, seat hold, order creation, idempotent payment replay, QR ticket download, refund, and seat restoration. It refunds its test order so repeated runs do not consume the demo inventory.
+
+Inspect running services or follow the application logs:
+
+```bash
+docker compose ps
+docker compose logs --follow api notification-worker web
+```
+
+## Local configuration
+
+The generated `.env` file is ignored by Git. The most commonly changed settings are:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `BIND_ADDRESS` | `127.0.0.1` | Keeps every published container port on the local machine |
+| `POSTGRES_PASSWORD` | `change-me` | Local PostgreSQL password |
+| `RABBITMQ_PASSWORD` | `change-me` | Local RabbitMQ password |
+| `JWT_SECRET` | 32-character sample | Signs local access tokens |
+| `SEED_DEMO` | `true` | Creates the sample event, seats, and accounts |
+| `DEMO_BUYER_PASSWORD` | `DemoBuyer123!` | Password used by the API, web form, and automated checks |
+| `DEMO_ORGANIZER_PASSWORD` | `DemoOrganizer123!` | Local organizer password |
+| `CORS_ALLOWED_ORIGIN_PATTERNS` | `http://localhost:*` | Comma-separated browser origins allowed to call the API |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | API origin compiled into the web application |
+| `GRAFANA_ADMIN_PASSWORD` | `admin` | Local Grafana administrator password |
+
+Rebuild `api` and `web` after changing demo credentials, the public API URL, or CORS settings:
+
+```bash
+docker compose up --build --detach api web
+```
+
+Local defaults are intentionally convenient, not internet-safe. For any shared or hosted environment, use random secrets, set exact HTTPS CORS origins, disable demo seeding when appropriate, and follow [Security](SECURITY.md).
+
+## Stop or reset
+
+Stop the application while preserving local data:
+
+```bash
+docker compose down
+```
+
+To start from a completely clean database, remove the named volumes. This permanently deletes all local SeatForge data:
+
+```bash
+docker compose down --volumes --remove-orphans
+```
+
+## Troubleshooting
+
+- **`docker compose` is unavailable:** update Docker Desktop or install the Docker Compose v2 plugin. The legacy `docker-compose` command is not supported.
+- **The Docker engine is unreachable:** start Docker Desktop or the Docker daemon, then rerun the quick-start script.
+- **A port is already allocated:** stop the process using ports `3000`, `3001`, `5432`, `5672`, `6379`, `8080`, `8081`, `9090`, `15672`, `4317`, or `4318`.
+- **A changed database or broker password is rejected:** credentials are initialized when their volume is first created. Back up needed data, then run the documented volume-reset command.
+- **The API never becomes healthy:** run `docker compose ps` and `docker compose logs --tail 200 api postgres redis rabbitmq`.
+- **The web form still uses an old demo password or API URL:** rebuild the web image because `NEXT_PUBLIC_*` values are compiled at build time.
 
 ## Demonstrate the concurrency guarantees
 

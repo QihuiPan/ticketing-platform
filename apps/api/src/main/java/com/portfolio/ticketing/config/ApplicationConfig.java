@@ -9,6 +9,7 @@ import java.time.Clock;
 @Configuration
 @EnableConfigurationProperties({
         AppProperties.Auth.class,
+        AppProperties.Cors.class,
         AppProperties.Holds.class,
         AppProperties.Messaging.class
 })

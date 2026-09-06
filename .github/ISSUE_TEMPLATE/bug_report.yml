@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem in SeatForge.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve SeatForge. Do not include credentials, tokens, or private customer data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe what happened and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest sequence that reproduces the problem.
+      placeholder: |
+        1. Start the stack with ...
+        2. Send a request to ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the operating system, Docker version, Compose version, browser, and commit SHA.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Relevant diagnostics
+      description: Paste concise, redacted logs or screenshots. Remove secrets and personal data first.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed credentials, tokens, and private data from this report.
+          required: true

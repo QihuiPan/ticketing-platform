@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const DEMO_BUYER_PASSWORD = process.env.NEXT_PUBLIC_DEMO_BUYER_PASSWORD ?? "DemoBuyer123!";
 
 type EventItem = {
   id: string;
@@ -52,7 +53,7 @@ async function readJson<T>(response: Response): Promise<T> {
 
 export default function Home() {
   const [email, setEmail] = useState("buyer@example.com");
-  const [password, setPassword] = useState("DemoBuyer123!");
+  const [password, setPassword] = useState(DEMO_BUYER_PASSWORD);
   const [token, setToken] = useState("");
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem>();
