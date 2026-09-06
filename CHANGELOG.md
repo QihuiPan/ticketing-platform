@@ -23,6 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Changed
 
 - Hardened the local Compose stack with health-based startup ordering, graceful shutdown, bounded logs, loopback-only port exposure, configurable demo credentials, and configurable CORS origins.
+- Enabled the notification worker's configured health and Prometheus HTTP endpoints so readiness checks and monitoring reflect the live process.
 - Expanded the quick-start, configuration, verification, shutdown, reset, and troubleshooting documentation for first-time users on Windows, macOS, and Linux.
 - Improved the public repository metadata and enabled GitHub secret scanning and push protection.
 - Changed the GitHub repository visibility from private to public on September 4, 2026, making the project source and development history available for portfolio review.
