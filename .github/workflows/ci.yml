@@ -108,7 +108,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Build and start the user-facing stack
-        run: docker compose --env-file .env.example up --build --detach --wait api notification-worker web
+        run: docker compose --env-file .env.example up --build --detach --wait --wait-timeout 300 api notification-worker web
       - name: Exercise the complete booking journey
         run: docker compose --env-file .env.example --profile load-test run --rm k6 run /scripts/smoke.js
       - name: Capture diagnostics
