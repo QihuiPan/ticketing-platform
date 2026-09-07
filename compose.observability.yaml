@@ -5,6 +5,7 @@ services:
       OTEL_SERVICE_NAME: ticketing-api
       OTEL_RESOURCE_ATTRIBUTES: service.version=0.3.0,deployment.environment=demo,cloud.region=local,tenant=team-booking
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OBSERVE_OTLP_ENDPOINT:?Set the authenticated platform gateway URL}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OBSERVE_OTLP_ENDPOINT:?Set the authenticated platform gateway URL}/v1/traces
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_EXPORTER_OTLP_HEADERS: ${OBSERVE_OTLP_HEADERS:?Set Authorization=Bearer%20TOKEN}
       OTEL_TRACES_EXPORTER: otlp
