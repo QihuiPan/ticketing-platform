@@ -53,3 +53,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 
 - Added the Spring Boot modular monolith, PostgreSQL schema, JWT authentication, RBAC, event catalog, seat inventory, concurrency-safe holds, automatic hold expiry, orders, and initial tests.
+
+## Observability integration - 2026-09-07
+
+- Added opt-in authenticated OpenTelemetry traces/logs and bounded SLO metrics with exact latency buckets.
+- Included a pinned Java agent and platform onboarding instructions.
+- Validation is recorded by the integration branch CI; no production diagnosis or throughput claims are made.

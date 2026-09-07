@@ -6,10 +6,13 @@ COPY apps/notification-worker/pom.xml apps/notification-worker/pom.xml
 COPY apps apps
 RUN mvn -B -pl apps/api -am package -DskipTests
 
+RUN mvn -B dependency:copy -Dartifact=io.opentelemetry.javaagent:opentelemetry-javaagent:2.14.0 -DoutputDirectory=/otel
+
 FROM eclipse-temurin:21-jre-alpine
 
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
+COPY --from=build /otel/opentelemetry-javaagent-2.14.0.jar /app/opentelemetry-javaagent.jar
 COPY --from=build /workspace/apps/api/target/ticketing-api-*.jar app.jar
 USER app
 EXPOSE 8080
