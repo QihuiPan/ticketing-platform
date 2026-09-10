@@ -4,6 +4,8 @@ SeatForge is a production-oriented, concurrency-safe ticket reservation platform
 
 The repository is intentionally a modular monolith plus a notification worker: the booking transaction stays simple and strongly consistent, while slow side effects are isolated behind a transactional outbox.
 
+For a concise recruiting and interview case study, read the [project portfolio](docs/portfolio.md), download the [PDF](docs/portfolio/SeatForge_Portfolio.pdf), or edit the [Word version](docs/portfolio/SeatForge_Portfolio.docx). The portfolio includes architecture, source-linked verification results, setup instructions, and the current demonstration scope.
+
 ## Core guarantees
 
 | Concern | Guarantee | Implementation |

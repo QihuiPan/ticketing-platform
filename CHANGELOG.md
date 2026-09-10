@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Added an English engineering portfolio in Markdown, PDF, and editable Word formats, with an architecture illustration, source-linked CI results, a short project introduction, and explicit demonstration and deployment scope.
 - Added cross-platform quick-start scripts that validate Docker, create local configuration, start the complete stack, wait for API readiness, and provide actionable failure diagnostics.
 - Added a repeatable end-to-end smoke test covering health, authentication, catalog discovery, seat holds, orders, idempotent payment replay, ticket downloads, refunds, and inventory restoration.
 - Added a fresh-install Compose job to CI so the documented user journey is verified from an empty environment on every change.
